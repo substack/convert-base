@@ -18,19 +18,32 @@ impl Convert {
     }
   }
   fn convert_aligned (&mut self, input: Vec<Input>) -> Vec<Output> {
-    let cap = input.len()*((self.from+self.to-1)/self.to);
+    let len = input.len();
+    let cap = len*((self.from+self.to-1)/self.to);
     let mut output = Vec::with_capacity(cap);
     let mut bucket = 0u64;
     let mut p = 1u64;
-    for x in input.iter() {
+    for (i,x) in input.iter().enumerate() {
       bucket += (*x as u64)*p;
       p *= self.from as u64;
-      if p < self.to as u64 { continue }
+      if p < self.to as u64 && i+1 != len { continue }
       p = 1u64;
-      while bucket > 0 {
+      let n_digits = {
+        let a = 63-(self.from as u64).leading_zeros();
+        let b = 63-(self.to as u64).leading_zeros();
+        a/b
+      };
+      let mut times = 0;
+      while bucket > 0 || times == 0 {
         let d = bucket % (self.to as u64);
         output.push(d as Output);
         bucket /= self.to as u64;
+        times += 1;
+      }
+      if i+1 < len {
+        for _ in times..n_digits {
+          output.push(0);
+        }
       }
     }
     output
