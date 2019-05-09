@@ -1,5 +1,3 @@
-use std::cmp::PartialOrd;
-
 pub struct Convert {
   pub from: usize,
   pub to: usize
@@ -22,8 +20,13 @@ impl Convert {
   fn convert_aligned (&mut self, input: Vec<Input>) -> Vec<Output> {
     let cap = input.len()*((self.from+self.to-1)/self.to);
     let mut output = Vec::with_capacity(cap);
-    for (i,x) in input.iter().enumerate() {
-      let mut bucket = *x as u64;
+    let mut bucket = 0u64;
+    let mut p = 1u64;
+    for x in input.iter() {
+      bucket += (*x as u64)*p;
+      p *= self.from as u64;
+      if p < self.to as u64 { continue }
+      p = 1u64;
       while bucket > 0 {
         let d = bucket % (self.to as u64);
         output.push(d as Output);
@@ -32,7 +35,7 @@ impl Convert {
     }
     output
   }
-  fn convert_unaligned (&mut self, input: Vec<Input>) -> Vec<Output> {
+  fn convert_unaligned (&mut self, _input: Vec<Input>) -> Vec<Output> {
     unimplemented![];
   }
 }
