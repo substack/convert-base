@@ -60,3 +60,37 @@ fn convert_low_to_high_aligned () {
     "[10000110 01000110 1100011]@2 => @4"
   ];
 }
+
+#[test]
+fn edge_cases_aligned () {
+  assert_eq![
+    Convert::new(2,4).convert(vec![]),
+    vec![],
+    "low empty to high empty"
+  ];
+  assert_eq![
+    Convert::new(4,2).convert(vec![]),
+    vec![],
+    "high empty to low empty"
+  ];
+  assert_eq![
+    Convert::new(2,4).convert(vec![1]),
+    vec![1],
+    "low to high single item"
+  ];
+  assert_eq![
+    Convert::new(4,2).convert(vec![1]),
+    vec![1],
+    "high to low single"
+  ];
+  assert_eq![
+    Convert::new(4,2).convert(vec![0,1]),
+    vec![0,0,1],
+    "high to low double to triple"
+  ];
+  assert_eq![
+    Convert::new(2,4).convert(vec![0,0,1]),
+    vec![0,1],
+    "low to high triple to double"
+  ];
+}
