@@ -22,17 +22,13 @@ impl Convert {
     let cap = len*((self.from+self.to-1)/self.to);
     let mut output = Vec::with_capacity(cap);
     let mut bucket = 0u64;
+    let n_digits = ulog2(self.from as u64) / ulog2(self.to as u64);
     let mut p = 1u64;
     for (i,x) in input.iter().enumerate() {
       bucket += (*x as u64)*p;
       p *= self.from as u64;
       if p < self.to as u64 && i+1 != len { continue }
       p = 1u64;
-      let n_digits = {
-        let a = 63-(self.from as u64).leading_zeros();
-        let b = 63-(self.to as u64).leading_zeros();
-        a/b
-      };
       let mut times = 0;
       while bucket > 0 || times == 0 {
         let d = bucket % (self.to as u64);
@@ -51,4 +47,8 @@ impl Convert {
   fn convert_unaligned (&mut self, _input: Vec<Input>) -> Vec<Output> {
     unimplemented![];
   }
+}
+
+fn ulog2 (x: u64) -> usize {
+  (63-x.leading_zeros()) as usize
 }
