@@ -10,7 +10,7 @@ impl Convert {
   pub fn new (from: usize, to: usize) -> Self {
     Convert { from, to }
   }
-  pub fn convert (&mut self, input: Vec<Input>) -> Vec<Output> {
+  pub fn convert (&mut self, input: &Vec<Input>) -> Vec<Output> {
     let len = input.len();
     let cap = len*((self.from+self.to-1)/self.to);
     let mut output = Vec::with_capacity(cap);
