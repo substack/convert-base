@@ -3,11 +3,7 @@ edition = "2018"
 name = "convert-base"
 version = "1.0.0"
 
-[dependencies]
-failure = "0.1.5"
-
 [lib]
 crate-type = [
-    "cdylib",
     "lib",
 ]

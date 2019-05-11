@@ -1,4 +1,3 @@
-extern crate convert_base;
 use convert_base::Convert;
 
 #[test]
