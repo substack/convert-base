@@ -24,24 +24,23 @@
 //! // output: [397, 150, 405]
 //! ```
 //!
-//! or convert a `Vec<u32>` of base 4068505555 to a `Vec<u16>` of base 700:
+//! or convert a `Vec<u32>` of base 4000000000 to a `Vec<u16>` of base 700:
 //!
 //! ``` rust
-//! extern crate convert_base;
 //! use convert_base::Convert;
 //!
 //! fn main () {
-//!   let mut base = Convert::new(4068505555,700);
+//!   let mut base = Convert::new(4000000000,700);
 //!   let output = base.convert::<u32,u16>(&vec![
-//!     4000000000, 3500000000, 3000000000, 2500000000,
-//!     2000000000, 1500000000, 1000000000, 2500000000,
-//!     3000000000, 4100000000, 2400000000, 1250000052
+//!     3900000000, 3500004500, 3000000000, 2500000000,
+//!     2000000000, 1500000000, 1000003300, 2500000000,
+//!     3000000000, 3700050000, 2400000000, 1250000052
 //!   ]);
 //!   println!["{:?}", output];
 //! }
-//! // output: [100, 182, 419, 476, 133, 314, 42, 217, 163, 481, 171, 122, 647,
-//! //   644, 67, 388, 566, 168, 16, 583, 198, 688, 404, 264, 686, 110, 694,
-//! //   444, 48, 338, 427, 611, 92, 564, 101, 622, 369, 637, 119, 648, 9]
+//! // output: [300, 71, 255, 325, 23, 591, 267, 188, 488, 553, 124, 54, 422,
+//! //   411, 116, 411, 85, 558, 4, 498, 384, 106, 465, 635, 75, 120, 226, 18,
+//! //   634, 631, 116, 464, 111, 679, 17, 382, 67, 99, 208, 164, 8]
 //! ```
 //!
 //! For input and output vectors, the least significant digit is at the
@@ -53,12 +52,39 @@
 
 use std::ops::{Add,Div,Rem};
 
-pub struct Convert { from: u64, to: u64 }
+pub struct Convert {
+  from: u64,
+  to: u64,
+  ratio: (usize,usize)
+}
 
 impl Convert {
   /// Create a new converter with `from` and `to` bases.
   pub fn new (from: u64, to: u64) -> Self {
-    Convert { from, to }
+    let mut ratio = (0,0);
+    if from % to == 0 || to % from == 0 {
+      let max_i = 128 / ulog2(to.max(from));
+      let mut j = 0;
+      let mut k = 0;
+      let f = from as u128;
+      let t = to as u128;
+      for i in 0..max_i {
+        let f_j = f.pow(j);
+        let t_k = t.pow(k);
+        if i > 0 && f_j == t_k {
+          ratio.0 = j as usize;
+          ratio.1 = k as usize;
+          break
+        } else if f_j < t_k || (i == 0 && from > to) {
+          j += 1
+        } else { k+=1 }
+      }
+    }
+    Convert { from, to, ratio }
+  }
+  /// Create a new converter but don't test for alignment.
+  pub fn new_unaligned (from: u64, to: u64) -> Self {
+    Convert { from, to, ratio: (0,0) }
   }
   /// Perform the conversion on `input` which contains digits in base
   /// `self.from`. You should specify the `Output` type so that the target base
@@ -72,13 +98,19 @@ impl Convert {
     let mut output: Vec<Output> = Vec::with_capacity(cap);
     let mut base: Vec<Output> = vec![1u8.into()];
     let mut v0: Vec<Output> = vec![];
+    let step = self.ratio.0;
+    let mut offset = 0;
     for (i,x) in input.iter().enumerate() {
-      // TODO: aligned bases can reset base value
       Self::copy(&mut v0, &base);
       self.multiply_scalar_into(&mut v0, (*x).into());
-      self.add_into(&mut output, &v0);
+      self.add_into(&mut output, &v0, offset);
       if i+1 < input.len() {
         self.multiply_scalar_into(&mut base, self.from);
+      }
+      if step > 0 && i%step == step-1 {
+        base.clear();
+        base.push(1u8.into());
+        offset += self.ratio.1;
       }
     }
     output
@@ -94,7 +126,7 @@ impl Convert {
     let mut carry = 0u64;
     for i in 0..dst.len() {
       let res = dst[i].into() * x + carry;
-      carry = res / (self.to as u64);
+      carry = res / self.to;
       dst[i] = FromU64::from(res % (self.to as u64));
     }
     while carry > 0 {
@@ -102,33 +134,36 @@ impl Convert {
       carry /= self.to;
     }
   }
-  fn add_into<T> (&self, dst: &mut Vec<T>, src: &Vec<T>) -> ()
+  fn add_into<T> (&self, dst: &mut Vec<T>, src: &Vec<T>, offset: usize) -> ()
   where T: Copy+Into<u64>+FromU64
   +Add<T,Output=T>+Div<T,Output=T>+Rem<T,Output=T> {
     let mut carry = 0u64;
-    for i in 0..dst.len().max(src.len()) {
-      if i < src.len() && i < dst.len() {
-        let res = src[i].into() + dst[i].into() + carry;
+    let mut i = 0;
+    while dst.len().max(offset)-offset < src.len() {
+      dst.push(FromU64::from(0));
+    }
+    loop {
+      let j = i + offset;
+      if i < src.len() && j < dst.len() {
+        let res = src[i].into() + dst[j].into() + carry;
         carry = res / self.to;
-        dst[i] = FromU64::from(res % self.to);
-      } else if i < dst.len() {
-        let res = dst[i].into() + carry;
+        dst[j] = FromU64::from(res % self.to);
+      } else if j < dst.len() {
+        let res = dst[j].into() + carry;
         carry = res / self.to;
-        dst[i] = FromU64::from(res % self.to);
+        dst[j] = FromU64::from(res % self.to);
       } else if i < src.len() {
         let res = src[i].into() + carry;
         carry = res / self.to;
         dst.push(FromU64::from(res % self.to));
-      } else {
-        let res = src[i].into() + carry;
+      } else if carry > 0 {
+        let res = carry;
         carry = res / self.to;
         dst.push(FromU64::from(res % self.to));
+      } else {
+        break;
       }
-    }
-    while carry > 0 {
-      let d = carry % self.to;
-      dst.push(FromU64::from(d));
-      carry /= self.to;
+      i += 1;
     }
   }
 }
