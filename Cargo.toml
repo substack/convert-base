@@ -1,9 +1,13 @@
 [package]
-edition = "2018"
 name = "convert-base"
 version = "1.0.0"
-
-[lib]
-crate-type = [
-    "lib",
-]
+description = "convert the radix (base) of digits stored in a vector"
+license = "MIT OR Apache-2.0"
+readme = "readme.md"
+repository = "https://github.com/substack/convert-base"
+homepage = "https://github.com/substack/convert-base"
+documentation = "https://docs.rs/convert-base"
+keywords = [ "base", "convert", "radix" ]
+categories = [ "algorithms", "encoding" ]
+authors = []
+edition = "2018"

@@ -1,4 +1,6 @@
-convert the radix (base) of digits stored in a vector
+# convert-base
+
+Convert the radix (base) of digits stored in a vector.
 
 * pure rust, no bigint deps or intermediate conversions
 * designed around vectors of unsigned integer types, not strings
@@ -11,34 +13,33 @@ convert base 4 data stored in a `Vec<u8>` to base 500 data stored in a
 `Vec<u16>`:
 
 ``` rust
-extern crate convert_base;
 use convert_base::Convert;
 
 fn main () {
   let mut base = Convert::new(4,500);
   let output = base.convert::<u8,u16>(&vec![1,1,1,1,2,2,1,0,2,2,0,0,2,1]);
-  println!["{:?}", output];
+  assert_eq!{output, vec![397, 150, 405]};
 }
-// output: [397, 150, 405]
 ```
 
-or convert a `Vec<u32>` of base 4000000000 to a `Vec<u16>` of base 700:
+or convert a `Vec<u32>` of base `4_000_000_000` to a `Vec<u16>` of base 700:
 
 ``` rust
 use convert_base::Convert;
 
 fn main () {
-  let mut base = Convert::new(4000000000,700);
+  let mut base = Convert::new(4_000_000_000,700);
   let output = base.convert::<u32,u16>(&vec![
-    3900000000, 3500004500, 3000000000, 2500000000,
-    2000000000, 1500000000, 1000003300, 2500000000,
-    3000000000, 3700050000, 2400000000, 1250000052
+    3_900_000_000, 3_500_004_500, 3_000_000_000, 2_500_000_000,
+    2_000_000_000, 1_500_000_000, 1_000_003_300, 2_500_000_000,
+    3_000_000_000, 3_700_050_000, 2_400_000_000, 1_250_000_052
   ]);
-  println!["{:?}", output];
+  assert_eq![output, vec!{
+    300, 71, 255, 325, 23, 591, 267, 188, 488, 553, 124, 54, 422, 411, 116,
+    411, 85, 558, 4, 498, 384, 106, 465, 635, 75, 120, 226, 18, 634, 631,
+    116, 464, 111, 679, 17, 382, 67, 99, 208, 164, 8
+  }];
 }
-// output: [300, 71, 255, 325, 23, 591, 267, 188, 488, 553, 124, 54, 422,
-//   411, 116, 411, 85, 558, 4, 498, 384, 106, 465, 635, 75, 120, 226, 18,
-//   634, 631, 116, 464, 111, 679, 17, 382, 67, 99, 208, 164, 8]
 ```
 
 For input and output vectors, the least significant digit is at the
@@ -59,15 +60,15 @@ cleanly overlap. For example 3 digits in base 256 corresponds exactly to 4
 digits in base 64. Or 2 digits in base 243 corresponds exactly to 10 digits
 in base 3 (because `243.pow(2) == 3.pow(10)`).
 
-On this old 2014 laptop, converting 5_000 digits:
+On this old 2014 laptop, converting `5_000` digits:
 
-* from base 243 to base 9: 0.00234 seconds
-* from base 243 to base 10: 1.26 seconds
+* from base 243 to base 9 in 0.00234 seconds
+* from base 243 to base 10 in 1.26 seconds
 
-and converting 50_000 digits:
+and converting `50_000` digits:
 
-* from base 243 to base 9: 0.127 seconds
-* from base 243 to base 10: 125.3 seconds
+* from base 243 to base 9 in 0.0149 seconds
+* from base 243 to base 10 in 125.3 seconds
 
 # api
 
