@@ -84,7 +84,7 @@ Create a new base conversion instance that converts between `from` and `to`.
 
 Create a new base conversion instance without checking for base alignment.
 
-## base.convert::<Input,Output>(input: Vec<Input>) : Vec<Output>
+## `base.convert::<Input,Output>(input: Vec<Input>) : Vec<Output>`
 
 Perform the conversion on `input` which contains digits in base `self.from`. The
 digits in the returned array will be in base the `self.to`. Make sure the
