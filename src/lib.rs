@@ -112,7 +112,7 @@ impl Convert {
   ///
   /// For input and output vectors, the least significant digit is at the
   /// beginning of the array.
-  pub fn convert<Input,Output> (&mut self, input: &Vec<Input>) -> Vec<Output>
+  pub fn convert<Input,Output> (&mut self, input: &[Input]) -> Vec<Output>
   where Output: Copy+Into<u64>+From<u8>+FromU64
   +Add<Output,Output=Output>+Div<Output,Output=Output>+Rem<Output,Output=Output>,
   Input: Copy+Into<u64> {
