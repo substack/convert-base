@@ -124,7 +124,8 @@ impl Convert {
     let step = self.ratio.0;
     let mut offset = 0;
     for (i,x) in input.iter().enumerate() {
-      Self::copy(&mut v0, &base);
+      v0.clear();
+      v0.extend(&base);
       self.multiply_scalar_into(&mut v0, (*x).into());
       self.add_into(&mut output, &v0, offset);
       if i+1 < input.len() {
@@ -137,12 +138,6 @@ impl Convert {
       }
     }
     output
-  }
-  fn copy<T> (dst: &mut Vec<T>, src: &Vec<T>) -> () where T: Copy {
-    dst.clear();
-    for x in src.iter() {
-      dst.push(*x);
-    }
   }
   fn multiply_scalar_into<T> (&self, dst: &mut Vec<T>, x: u64) -> ()
   where T: Copy+Into<u64>+FromU64 {
